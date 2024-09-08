@@ -1,0 +1,78 @@
+import json
+import boto3
+import uuid
+
+def lambda_handler(event, context):
+    # Initialize clients
+    polly = boto3.client('polly')
+    s3 = boto3.client('s3')
+    
+    # Get parameters from the event
+    try:
+        body = json.loads(event['body'])
+        text = body.get('text', '')
+    except (KeyError, json.JSONDecodeError):
+        return {
+            'statusCode': 400,
+            'headers': {
+                'Access-Control-Allow-Origin': '*',
+                'Access-Control-Allow-Headers': 'Content-Type',
+                'Access-Control-Allow-Methods': 'OPTIONS, POST, GET'
+            },
+            'body': json.dumps({'message': 'Invalid request format'})
+        }
+    
+    if not text.strip():
+        return {
+            'statusCode': 400,
+            'headers': {
+                'Access-Control-Allow-Origin': '*',
+                'Access-Control-Allow-Headers': 'Content-Type',
+                'Access-Control-Allow-Methods': 'OPTIONS, POST, GET'
+            },
+            'body': json.dumps({'message': 'Text cannot be empty'})
+        }
+    
+    bucket_name = 'pollybucket535'
+    filename = f'speech-{uuid.uuid4()}.mp3'
+    
+    try:
+        # Synthesize speech
+        response = polly.synthesize_speech(
+            Text=text,
+            OutputFormat='mp3',
+            VoiceId='Joanna'  # You can change the voice as needed
+        )
+        
+        # Save the audio stream to S3
+        s3.put_object(
+            Bucket=bucket_name,
+            Key=filename,
+            Body=response['AudioStream'].read(),
+            ContentType='audio/mp3'
+        )
+        
+        # Generate a publicly accessible URL
+        s3_url = f'https://pollybucket535.s3.amazonaws.com/{filename}'
+        
+        return {
+            'statusCode': 200,
+            'headers': {
+                'Access-Control-Allow-Origin': '*',
+                'Access-Control-Allow-Headers': 'Content-Type',
+                'Access-Control-Allow-Methods': 'OPTIONS, POST, GET'
+            },
+            'body': json.dumps({
+                's3_url': s3_url
+            })
+        }
+    except Exception as e:
+        return {
+            'statusCode': 500,
+            'headers': {
+                'Access-Control-Allow-Origin': '*',
+                'Access-Control-Allow-Headers': 'Content-Type',
+                'Access-Control-Allow-Methods': 'OPTIONS, POST, GET'
+            },
+            'body': json.dumps({'message': 'Internal Server Error', 'error': str(e)})
+        }
