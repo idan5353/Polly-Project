@@ -1,4 +1,12 @@
-### Bucket Policy:
+# S3 Bucket Configuration
+
+This document provides the configuration details for the S3 bucket, including the access policy and Cross-Origin Resource Sharing (CORS) settings.
+
+## Bucket Policy
+
+The following JSON defines the access policy for the S3 bucket:
+
+```json
 {
     "Version": "2012-10-17",
     "Statement": [
