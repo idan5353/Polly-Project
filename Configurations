@@ -35,3 +35,21 @@ Cross-origin resource sharing (CORS):
         "MaxAgeSeconds": 3000
     }
 ]
+
+Lambda Role:
+{
+	"Version": "2012-10-17",
+	"Statement": [
+		{
+			"Effect": "Allow",
+			"Action": [
+				"s3:PutObject",
+				"s3:GetObject"
+			],
+			"Resource": "arn:aws:s3:::pollybucket535/*"
+		}
+	]
+}
+AmazonPollyFullAccess
+AmazonPollyReadOnlyAccess
+AmazonS3FullAccess
